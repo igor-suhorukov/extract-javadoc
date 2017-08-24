@@ -31,21 +31,21 @@ public class JavadocVisitor extends ASTVisitor {
     @Override
     public boolean visit(PackageDeclaration node) {
         packageName = node.getName().getFullyQualifiedName();
-        javaDocs.addAll(getTypes().stream().map(item -> {
-            JavaDoc javaDoc = getJavaDoc(item);
-            Type type = getType(item);
+        javaDocs.addAll(getTypes().stream().map(astTypeNode -> {
+            JavaDoc javaDoc = getJavaDoc(astTypeNode);
+            Type type = getType(astTypeNode);
             type.setUnitInfo(getUnitInfo());
             javaDoc.setSourcePoint(type);
             return javaDoc;
         }).collect(Collectors.toList()));
-        javaDocs.addAll(getMethods().stream().map(item -> {
-            JavaDoc javaDoc = getJavaDoc(item);
+        javaDocs.addAll(getMethods().stream().map(astMethodNode -> {
+            JavaDoc javaDoc = getJavaDoc(astMethodNode);
             Method method = new Method();
             method.setUnitInfo(getUnitInfo());
-            method.setName(item.getName().getFullyQualifiedName());
-            method.setConstructor(item.isConstructor());
-            fillMethodDeclaration(item, method);
-            Type type = getType((AbstractTypeDeclaration) item.getParent());
+            method.setName(astMethodNode.getName().getFullyQualifiedName());
+            method.setConstructor(astMethodNode.isConstructor());
+            fillMethodDeclaration(astMethodNode, method);
+            Type type = getType((AbstractTypeDeclaration) astMethodNode.getParent());
             method.setType(type);
             javaDoc.setSourcePoint(method);
             return javaDoc;
@@ -59,26 +59,26 @@ public class JavadocVisitor extends ASTVisitor {
 
 
     @SuppressWarnings("unchecked")
-    private void fillMethodDeclaration(MethodDeclaration item, Method method) {
-        List<SingleVariableDeclaration> parameters = item.parameters();
-        org.eclipse.jdt.core.dom.Type returnType2 = item.getReturnType2();
+    private void fillMethodDeclaration(MethodDeclaration methodAstNode, Method method) {
+        List<SingleVariableDeclaration> parameters = methodAstNode.parameters();
+        org.eclipse.jdt.core.dom.Type returnType2 = methodAstNode.getReturnType2();
         method.setParams(parameters.stream().map(param -> param.getType().toString()).collect(Collectors.toList()));
         if(returnType2!=null) {
             method.setReturnType(returnType2.toString());
         }
     }
 
-    private Type getType(AbstractTypeDeclaration item) {
-        String binaryName = item.resolveBinding().getBinaryName();
+    private Type getType(AbstractTypeDeclaration astNode) {
+        String binaryName = astNode.resolveBinding().getBinaryName();
         Type  type = new Type();
         type.setName(binaryName);
         return type;
     }
 
     @SuppressWarnings("unchecked")
-    private JavaDoc getJavaDoc(BodyDeclaration item) {
+    private JavaDoc getJavaDoc(BodyDeclaration astNode) {
         JavaDoc javaDoc = new JavaDoc();
-        Javadoc javadoc = item.getJavadoc();
+        Javadoc javadoc = astNode.getJavadoc();
         List<TagElement> tags = javadoc.tags();
         Optional<TagElement> comment = tags.stream().filter(tag -> tag.getTagName() == null).findFirst();
         comment.ifPresent(tagElement -> javaDoc.setComment(tagElement.toString().replace("\n *","").trim()));
@@ -97,11 +97,11 @@ public class JavadocVisitor extends ASTVisitor {
         return ((List<IDocElement>)fragments).stream().map(Objects::toString).collect(Collectors.toList());
     }
     private List<AbstractTypeDeclaration> getTypes() {
-        return commentList.stream().map(ASTNode::getParent).filter(Objects::nonNull).filter(AbstractTypeDeclaration.class::isInstance).map(item -> (AbstractTypeDeclaration) item).collect(Collectors.toList());
+        return commentList.stream().map(ASTNode::getParent).filter(Objects::nonNull).filter(AbstractTypeDeclaration.class::isInstance).map(astNode -> (AbstractTypeDeclaration) astNode).collect(Collectors.toList());
     }
 
     private List<MethodDeclaration> getMethods() {
-        return commentList.stream().map(ASTNode::getParent).filter(Objects::nonNull).filter(MethodDeclaration.class::isInstance).map(item -> (MethodDeclaration) item).collect(Collectors.toList());
+        return commentList.stream().map(ASTNode::getParent).filter(Objects::nonNull).filter(MethodDeclaration.class::isInstance).map(astNode -> (MethodDeclaration) astNode).collect(Collectors.toList());
     }
 
     @Override
