@@ -10,11 +10,10 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.tukaani.xz.LZMA2Options;
+import org.tukaani.xz.XZOutputStream;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Writer;
+import java.io.*;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,7 +25,10 @@ public class ExtractJavadocModel {
 
     private static ThreadLocal<ASTParser> parserCache = ThreadLocal.withInitial( () -> ASTParser.newParser(AST.JLS8));
     private static final String[] SOURCE_PATH = new String[]{System.getProperty("java.io.tmpdir")};
-    private static final String[] SOURCE_ENCODING = new String[]{"UTF-8"};
+    private static final String UTF_8 = "UTF-8";
+    static final String XZ_ARCHIVE_EXTENSION = ".xz";
+    private static final int MAX_COMPRESSION_RATIO = 9;
+    private static final String[] SOURCE_ENCODING = new String[]{UTF_8};
     private static final String INVALID_INPUT_PARAMETERS_COUNT = "Invalid input parameters count";
     private ExtractJavadocModel() {
         throw new UnsupportedOperationException("utility class");
@@ -49,9 +51,22 @@ public class ExtractJavadocModel {
         objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
         objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
 
-        try (Writer javadocWriter = new FileWriter(new File(javaDocFile))){
+        try (Writer javadocWriter = getWriter(javaDocFile)){
             objectMapper.writeValue(javadocWriter, javadoc);
         }
+    }
+
+    private static Writer getWriter(String javaDocFile) throws IOException {
+        OutputStream outputStream;
+        File javadocFile = new File(javaDocFile);
+        if(javaDocFile.toLowerCase().endsWith(XZ_ARCHIVE_EXTENSION)){
+            LZMA2Options filterOptions = new LZMA2Options();
+            filterOptions.setPreset(MAX_COMPRESSION_RATIO);
+            outputStream = new XZOutputStream(new FileOutputStream(javadocFile), filterOptions);
+        } else {
+            outputStream = new FileOutputStream(javadocFile);
+        }
+        return new OutputStreamWriter(outputStream, UTF_8);
     }
 
     public static List<JavaDoc> parseDirectory(String inputDirectory) throws IOException {

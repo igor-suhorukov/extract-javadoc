@@ -37,6 +37,12 @@
             <artifactId>jackson-databind</artifactId>
             <version>2.9.0</version>
         </dependency>
+        <!-- XZ compressor -->
+        <dependency>
+            <groupId>org.tukaani</groupId>
+            <artifactId>xz</artifactId>
+            <version>1.6</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
@@ -86,6 +92,10 @@
                         <relocation>
                             <pattern>org.eclipse</pattern>
                             <shadedPattern>com.github.igorsuhorukov.org.eclipse</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.tukaani</pattern>
+                            <shadedPattern>com.github.igorsuhorukov.org.tukaani</shadedPattern>
                         </relocation>
                     </relocations>
                 </configuration>
