@@ -43,7 +43,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>2.4</version>
+                <version>3.0.0</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -70,6 +70,24 @@
                             </manifestEntries>
                         </transformer>
                     </transformers>
+                    <relocations>
+                        <relocation>
+                            <pattern>com.fasterxml</pattern>
+                            <shadedPattern>com.github.igorsuhorukov.fasterxml</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.apache</pattern>
+                            <shadedPattern>com.github.igorsuhorukov.org.apache</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.osgi</pattern>
+                            <shadedPattern>com.github.igorsuhorukov.org.osgi</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.eclipse</pattern>
+                            <shadedPattern>com.github.igorsuhorukov.org.eclipse</shadedPattern>
+                        </relocation>
+                    </relocations>
                 </configuration>
             </plugin>
         </plugins>
