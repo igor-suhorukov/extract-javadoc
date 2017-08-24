@@ -129,7 +129,7 @@
 							<dependency>
 								<groupId>com.github.igor-suhorukov</groupId>
 								<artifactId>extract-javadoc</artifactId>
-								<version>1.0-SNAPSHOT</version>
+								<version>${project.version}</version>
 								<type>jar</type>
 								<scope>compile</scope>
 							</dependency>
