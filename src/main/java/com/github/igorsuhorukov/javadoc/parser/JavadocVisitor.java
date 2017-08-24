@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 public class JavadocVisitor extends ASTVisitor {
 
     private File file;
+    private String relativePath;
     private String sourceText;
     private CompilationUnit compilationUnit;
 
@@ -21,8 +22,9 @@ public class JavadocVisitor extends ASTVisitor {
     private List<? extends Comment> commentList;
     private List<JavaDoc> javaDocs = new ArrayList<>();
 
-    public JavadocVisitor(File file, String sourceText) {
+    public JavadocVisitor(File file, String relativePath, String sourceText) {
         this.file = file;
+        this.relativePath = relativePath;
         this.sourceText = sourceText;
     }
 
@@ -52,7 +54,7 @@ public class JavadocVisitor extends ASTVisitor {
     }
 
     private CompilationUnitInfo getUnitInfo() {
-        return new CompilationUnitInfo(packageName, file.getName());
+        return new CompilationUnitInfo(packageName, relativePath, file.getName());
     }
 
 

@@ -60,10 +60,11 @@ public class ExtractJavadocModel {
         List<Path> inputJavaFiles = Files.walk(path, FileVisitOption.FOLLOW_LINKS)
                 .filter(file -> !Files.isDirectory(file) && file.getFileName().toString().endsWith(".java"))
                 .collect(Collectors.toList());
-        return inputJavaFiles.stream().parallel().map(ExtractJavadocModel::parseFile).flatMap(List::stream).collect(Collectors.toList());
+        return inputJavaFiles.stream().parallel().map(javaSource -> parseFile(path, javaSource))
+                .flatMap(List::stream).collect(Collectors.toList());
     }
 
-    public static List<JavaDoc> parseFile(Path source) {
+    public static List<JavaDoc> parseFile(Path rootPath, Path source) {
         ASTParser parser = parserCache.get();
         String sourceText;
         try {
@@ -77,9 +78,11 @@ public class ExtractJavadocModel {
         parser.setKind(ASTParser.K_COMPILATION_UNIT);
         parser.setCompilerOptions(JavaCore.getOptions());
 
-        parser.setUnitName(source.getFileName().toFile().getName());
+        File javaSourceFile = source.toFile();
+        parser.setUnitName(javaSourceFile.getName());
+        String relativePath = new File(javaSourceFile.getAbsolutePath()).getParentFile().getAbsolutePath().replace(rootPath.toFile().getAbsolutePath() + File.separator, "");
         CompilationUnit cu = (CompilationUnit) parser.createAST(null);
-        JavadocVisitor visitor = new JavadocVisitor(source.getFileName().toFile(), sourceText);
+        JavadocVisitor visitor = new JavadocVisitor(javaSourceFile, relativePath, sourceText);
         cu.accept(visitor);
         return visitor.getJavaDocs();
     }
