@@ -132,7 +132,7 @@
 							<mainClass>com.github.igorsuhorukov.javadoc.ExtractJavadocModel</mainClass>
 							<arguments>
 								<argument>${project.basedir}/src</argument>
-								<argument>${project.build.directory}/javadoc.json</argument>
+								<argument>${project.build.directory}/javadoc.json.xz</argument>
 							</arguments>
 						</configuration>
 						<dependencies>
@@ -159,8 +159,8 @@
 								<configuration>
 									<artifacts>
 										<artifact>
-											<file>${project.build.directory}/javadoc.json</file>
-											<type>json</type>
+											<file>${project.build.directory}/javadoc.json.xz</file>
+											<type>xz</type>
 											<classifier>javadoc</classifier>
 										</artifact>
 									</artifacts>
