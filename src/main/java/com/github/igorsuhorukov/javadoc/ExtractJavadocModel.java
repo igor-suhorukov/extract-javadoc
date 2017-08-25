@@ -78,24 +78,7 @@ public class ExtractJavadocModel {
 
     public static List<JavaDoc> parsePath(String inputPath) throws IOException {
         checkInputPath(inputPath);
-        if(isZipFile(inputPath)){
-            return parseSourcesFromZipArchive(inputPath);
-        } else {
-            Path path = Paths.get(inputPath);
-            List<Path> inputJavaFiles = Files.walk(path, FileVisitOption.FOLLOW_LINKS)
-                    .filter(file -> !Files.isDirectory(file) && file.getFileName().toString().endsWith(JAVA_FILE_EXTENSION))
-                    .collect(Collectors.toList());
-            return inputJavaFiles.stream().parallel().map(javaSource -> {
-                try {
-                    String sourceText = new String(Files.readAllBytes(javaSource));
-                    String relativePath = new File(javaSource.toFile().getAbsolutePath()).getParentFile().getAbsolutePath().replace(path.toFile().getAbsolutePath() + File.separator, "");
-                    String fileName = javaSource.toFile().getName();
-                    return parseFile(sourceText, fileName, relativePath);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }).flatMap(List::stream).collect(Collectors.toList());
-        }
+        return isZipFile(inputPath) ? parseSourcesFromZipArchive(inputPath) : parseSourcesFromDirectory(inputPath);
     }
 
     public static List<JavaDoc> parseFile(String javaSourceText, String fileName, String relativePath) {
@@ -111,6 +94,23 @@ public class ExtractJavadocModel {
         JavadocVisitor visitor = new JavadocVisitor(fileName, relativePath, javaSourceText);
         cu.accept(visitor);
         return visitor.getJavaDocs();
+    }
+
+    private static List<JavaDoc> parseSourcesFromDirectory(String inputPath) throws IOException {
+        Path path = Paths.get(inputPath);
+        List<Path> inputJavaFiles = Files.walk(path, FileVisitOption.FOLLOW_LINKS)
+                .filter(file -> !Files.isDirectory(file) && file.getFileName().toString().endsWith(JAVA_FILE_EXTENSION))
+                .collect(Collectors.toList());
+        return inputJavaFiles.stream().parallel().map(javaSource -> {
+            try {
+                String sourceText = new String(Files.readAllBytes(javaSource));
+                String relativePath = new File(javaSource.toFile().getAbsolutePath()).getParentFile().getAbsolutePath().replace(path.toFile().getAbsolutePath() + File.separator, "");
+                String fileName = javaSource.toFile().getName();
+                return parseFile(sourceText, fileName, relativePath);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }).flatMap(List::stream).collect(Collectors.toList());
     }
 
     private static List<JavaDoc> parseSourcesFromZipArchive(String inputPath) throws IOException{
