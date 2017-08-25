@@ -18,8 +18,8 @@ import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -33,6 +33,7 @@ public class ExtractJavadocModel {
     static final String JAVA_FILE_EXTENSION = ".java";
     static final String JAR_FILE_EXTENSION = ".jar";
     static final String ZIP_FILE_EXTENSION = ".zip";
+    private static final int COMPILATION_TIMEOUT = 1;
     private static final int MAX_COMPRESSION_RATIO = 9;
     private static final String[] SOURCE_ENCODING = new String[]{UTF_8};
     private static final String INVALID_INPUT_PARAMETERS_COUNT = "Invalid input parameters count";
@@ -113,7 +114,8 @@ public class ExtractJavadocModel {
     }
 
     private static List<JavaDoc> parseSourcesFromZipArchive(String inputPath) throws IOException{
-        List<JavaDoc> javadocs = new ArrayList<>();
+        List<JavaDoc> javadocs = new CopyOnWriteArrayList<>();
+        ExecutorService executorService = Executors.newFixedThreadPool(ForkJoinPool.getCommonPoolParallelism());
         try (InputStream jarInStream = new FileInputStream(inputPath)){
             ZipInputStream zip = new ZipInputStream(jarInStream);
             ZipEntry zipEntry;
@@ -124,8 +126,15 @@ public class ExtractJavadocModel {
                     String relativePath = name.substring(0, name.lastIndexOf("/"));
                     BufferedReader buffer = new BufferedReader(new InputStreamReader(zip));
                     String javaSourceText = buffer.lines().collect(Collectors.joining("\n"));
-                    javadocs.addAll(ExtractJavadocModel.parseFile(javaSourceText, fileName, relativePath));
+                    executorService.submit(()-> javadocs.addAll(ExtractJavadocModel.parseFile(javaSourceText, fileName, relativePath)));
                 }
+            }
+        } finally {
+            executorService.shutdown();
+            try {
+                executorService.awaitTermination(COMPILATION_TIMEOUT, TimeUnit.HOURS);
+            } catch (InterruptedException e) {
+                Thread.interrupted();
             }
         }
         return javadocs;
