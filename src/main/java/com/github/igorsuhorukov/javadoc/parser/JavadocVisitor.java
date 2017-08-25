@@ -4,7 +4,6 @@ import com.github.igorsuhorukov.javadoc.model.*;
 import com.github.igorsuhorukov.javadoc.model.Type;
 import org.eclipse.jdt.core.dom.*;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -13,7 +12,7 @@ import java.util.stream.Collectors;
 
 public class JavadocVisitor extends ASTVisitor {
 
-    private File file;
+    private String file;
     private String relativePath;
     private String sourceText;
     private CompilationUnit compilationUnit;
@@ -22,7 +21,7 @@ public class JavadocVisitor extends ASTVisitor {
     private List<? extends Comment> commentList;
     private List<JavaDoc> javaDocs = new ArrayList<>();
 
-    public JavadocVisitor(File file, String relativePath, String sourceText) {
+    public JavadocVisitor(String file, String relativePath, String sourceText) {
         this.file = file;
         this.relativePath = relativePath;
         this.sourceText = sourceText;
@@ -54,7 +53,7 @@ public class JavadocVisitor extends ASTVisitor {
     }
 
     private CompilationUnitInfo getUnitInfo() {
-        return new CompilationUnitInfo(packageName, relativePath, file.getName());
+        return new CompilationUnitInfo(packageName, relativePath, file);
     }
 
 

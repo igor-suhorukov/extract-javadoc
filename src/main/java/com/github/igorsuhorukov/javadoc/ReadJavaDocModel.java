@@ -5,7 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.igorsuhorukov.javadoc.model.JavaDoc;
 import org.tukaani.xz.XZInputStream;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 public class ReadJavaDocModel {
