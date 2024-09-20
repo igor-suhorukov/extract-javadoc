@@ -8,6 +8,7 @@ public class Method extends SourcePoint{
     private boolean constructor;
     private List<String> params;
     private String returnType;
+    private int line;
 
     public void setName(String name) {
         this.name = name;
@@ -27,5 +28,9 @@ public class Method extends SourcePoint{
 
     public void setReturnType(String returnType) {
         this.returnType = returnType;
+    }
+
+    public void setLine(int line) {
+        this.line = line;
     }
 }

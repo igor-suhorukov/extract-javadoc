@@ -47,6 +47,7 @@ public class JavadocVisitor extends ASTVisitor {
             Type type = getType((AbstractTypeDeclaration) astMethodNode.getParent());
             method.setType(type);
             javaDoc.setSourcePoint(method);
+            method.setLine(compilationUnit.getLineNumber(astMethodNode.getName().getStartPosition()));
             return javaDoc;
         }).collect(Collectors.toList()));
         return super.visit(node);
